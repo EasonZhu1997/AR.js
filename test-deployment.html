@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR.js 部署测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .status.error {
+            border-left-color: #f44336;
+        }
+        .status.warning {
+            border-left-color: #ff9800;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .test-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .file-list {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ff9800;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AR.js 部署测试页面</h1>
+        
+        <div class="status">
+            <h3>📋 部署状态</h3>
+            <p>此页面用于验证 AR.js 项目的部署是否成功。</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 构建文件检查</h3>
+            <div id="build-status">检查中...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 功能测试</h3>
+            <button class="test-button" onclick="testAframe()">测试 A-Frame 版本</button>
+            <button class="test-button" onclick="testThreeJS()">测试 Three.js 版本</button>
+            <button class="test-button" onclick="testExamples()">测试示例文件</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📁 可用文件列表</h3>
+            <div id="file-list" class="file-list">加载中...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>📱 移动设备测试</h3>
+            <p>在移动设备上打开此页面以测试 AR 功能：</p>
+            <div id="mobile-info"></div>
+        </div>
+    </div>
+
+    <script>
+        // 检查构建文件
+        async function checkBuildFiles() {
+            const buildStatus = document.getElementById('build-status');
+            const files = [
+                'aframe/build/aframe-ar.js',
+                'aframe/build/aframe-ar-nft.js',
+                'three.js/build/ar-threex.js',
+                'three.js/build/ar.js'
+            ];
+            
+            let allExist = true;
+            let statusHtml = '<h4>构建文件状态：</h4>';
+            
+            for (const file of files) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        statusHtml += `<p class="success">✅ ${file} - 存在</p>`;
+                    } else {
+                        statusHtml += `<p class="error">❌ ${file} - 缺失</p>`;
+                        allExist = false;
+                    }
+                } catch (error) {
+                    statusHtml += `<p class="error">❌ ${file} - 错误: ${error.message}</p>`;
+                    allExist = false;
+                }
+            }
+            
+            if (allExist) {
+                statusHtml += '<p class="success">🎉 所有构建文件检查通过！</p>';
+            } else {
+                statusHtml += '<p class="warning">⚠️ 部分构建文件缺失，请检查构建过程。</p>';
+            }
+            
+            buildStatus.innerHTML = statusHtml;
+        }
+
+        // 测试 A-Frame 版本
+        function testAframe() {
+            try {
+                // 尝试加载 A-Frame AR.js
+                const script = document.createElement('script');
+                script.src = 'aframe/build/aframe-ar.js';
+                script.onload = () => {
+                    alert('✅ A-Frame 版本加载成功！');
+                };
+                script.onerror = () => {
+                    alert('❌ A-Frame 版本加载失败！');
+                };
+                document.head.appendChild(script);
+            } catch (error) {
+                alert('❌ 测试失败: ' + error.message);
+            }
+        }
+
+        // 测试 Three.js 版本
+        function testThreeJS() {
+            try {
+                // 尝试加载 Three.js AR.js
+                const script = document.createElement('script');
+                script.src = 'three.js/build/ar-threex.js';
+                script.onload = () => {
+                    alert('✅ Three.js 版本加载成功！');
+                };
+                script.onerror = () => {
+                    alert('❌ Three.js 版本加载失败！');
+                };
+                document.head.appendChild(script);
+            } catch (error) {
+                alert('❌ 测试失败: ' + error.message);
+            }
+        }
+
+        // 测试示例文件
+        function testExamples() {
+            const examples = [
+                'aframe/examples/marker-based/basic.html',
+                'aframe/examples/image-tracking/nft/index.html',
+                'three.js/examples/basic.html'
+            ];
+            
+            let availableExamples = 0;
+            examples.forEach(example => {
+                fetch(example)
+                    .then(response => {
+                        if (response.ok) availableExamples++;
+                    })
+                    .catch(() => {});
+            });
+            
+            setTimeout(() => {
+                alert(`📁 示例文件检查完成！\n可用示例: ${availableExamples}/${examples.length}`);
+            }, 1000);
+        }
+
+        // 检查移动设备
+        function checkMobile() {
+            const mobileInfo = document.getElementById('mobile-info');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                mobileInfo.innerHTML = `
+                    <p class="success">📱 检测到移动设备</p>
+                    <p>您可以测试 AR 功能，包括：</p>
+                    <ul>
+                        <li>摄像头访问</li>
+                        <li>标记跟踪</li>
+                        <li>图像跟踪</li>
+                        <li>基于位置的 AR</li>
+                    </ul>
+                `;
+            } else {
+                mobileInfo.innerHTML = `
+                    <p class="warning">💻 桌面设备</p>
+                    <p>某些 AR 功能在桌面设备上可能受限。</p>
+                    <p>建议在移动设备上测试完整功能。</p>
+                `;
+            }
+        }
+
+        // 获取文件列表
+        async function getFileList() {
+            try {
+                const response = await fetch('/');
+                const html = await response.text();
+                const fileList = document.getElementById('file-list');
+                
+                // 简单的文件列表解析
+                const files = html.match(/href="([^"]+)"/g) || [];
+                const uniqueFiles = [...new Set(files.map(f => f.replace('href="', '').replace('"', '')))];
+                
+                fileList.innerHTML = '<h4>根目录文件：</h4>' + 
+                    uniqueFiles.slice(0, 20).map(f => `<div>📄 ${f}</div>`).join('') +
+                    (uniqueFiles.length > 20 ? `<div>... 还有 ${uniqueFiles.length - 20} 个文件</div>` : '');
+            } catch (error) {
+                document.getElementById('file-list').innerHTML = `<div class="error">无法获取文件列表: ${error.message}</div>`;
+            }
+        }
+
+        // 页面加载完成后执行
+        window.addEventListener('load', () => {
+            checkBuildFiles();
+            checkMobile();
+            getFileList();
+        });
+    </script>
+</body>
+</html>
