@@ -19,12 +19,127 @@
     font-size: 1.25em;
     color: white;
   }
+
+  .status-indicator {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .status-success {
+    background-color: rgba(76, 175, 80, 0.9);
+    color: white;
+    border: 2px solid #4CAF50;
+  }
+
+  .status-not-detected {
+    background-color: rgba(244, 67, 54, 0.9);
+    color: white;
+    border: 2px solid #F44336;
+  }
+
+  .status-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
 </style>
 
 <!-- rawgithack development URL -->
 <!--<script src='https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js'></script>-->
 <script src='../../../../aframe/build/aframe-ar-nft.js'></script>
 
+<script>
+  // 创建状态指示器
+  function createStatusIndicator() {
+    const indicator = document.createElement('div');
+    indicator.className = 'status-indicator status-not-detected';
+    indicator.textContent = '未识别';
+    indicator.id = 'status-indicator';
+    document.body.appendChild(indicator);
+    return indicator;
+  }
+
+  // 更新状态显示
+  function updateStatus(isDetected) {
+    const indicator = document.getElementById('status-indicator') || createStatusIndicator();
+    
+    if (isDetected) {
+      indicator.textContent = '识别成功！';
+      indicator.className = 'status-indicator status-success';
+      console.log('NFT图像识别成功！');
+    } else {
+      indicator.textContent = '未识别';
+      indicator.className = 'status-indicator status-not-detected';
+      console.log('NFT图像未识别');
+    }
+  }
+
+  // 创建自定义组件来监听NFT状态
+  AFRAME.registerComponent('nft-status-monitor', {
+    init: function() {
+      console.log('NFT状态监听器初始化');
+      this.isDetected = false;
+      
+      // 监听NFT组件的状态变化
+      this.el.addEventListener('markerFound', () => {
+        console.log('markerFound事件触发');
+        this.isDetected = true;
+        updateStatus(true);
+      });
+      
+      this.el.addEventListener('markerLost', () => {
+        console.log('markerLost事件触发');
+        this.isDetected = false;
+        updateStatus(false);
+      });
+      
+      // 监听组件初始化
+      this.el.addEventListener('componentinitialized', () => {
+        console.log('NFT组件初始化完成');
+      });
+      
+      // 监听场景加载完成
+      this.el.sceneEl.addEventListener('renderstart', () => {
+        console.log('场景开始渲染');
+      });
+      
+      // 备用方法：定期检查NFT状态
+      this.checkInterval = setInterval(() => {
+        if (this.el.components['nft']) {
+          const nftComponent = this.el.components['nft'];
+          console.log('NFT组件状态:', nftComponent);
+          
+          // 检查对象3D的可见性
+          if (this.el.object3D && this.el.object3D.visible !== this.isDetected) {
+            this.isDetected = this.el.object3D.visible;
+            updateStatus(this.isDetected);
+            console.log('NFT可见性变化检测到:', this.isDetected);
+          }
+        }
+      }, 1000);
+    },
+    
+    remove: function() {
+      if (this.checkInterval) {
+        clearInterval(this.checkInterval);
+      }
+    }
+  });
+
+  // 页面加载完成后初始化
+  window.addEventListener('load', function() {
+    createStatusIndicator();
+    console.log('页面加载完成，开始初始化NFT状态监听');
+  });
+</script>
 
 <body style='margin : 0px; overflow: hidden;'>
    <!-- minimal loader shown until image descriptors are loaded -->
@@ -39,7 +154,8 @@
         <!-- use rawgithack to retrieve the correct url for nft marker (see 'pinball' below) -->
         <a-nft
             type='nft' url='./aframe/examples/image-tracking/nft/trex/trex-image/trex'
-            smooth='true' smoothCount='10' smoothTolerance='0.01' smoothThreshold='5'>
+            smooth='true' smoothCount='10' smoothTolerance='0.01' smoothThreshold='5'
+            nft-status-monitor>
             <a-entity
                 gltf-model='./trex/scene.gltf'
                 scale="5 5 5"
